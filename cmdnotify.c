@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #define DEFAULT_BINDIR_PREFIX   "/bin/"
 #define NOTIFY_SEND_BINLOC  DEFAULT_BINDIR_PREFIX "notify-send"
@@ -42,10 +43,32 @@
 #define FAILURE_SUMMARY "Error"
 #define SUMMARY_MAXLEN 200      /* max chars */
 
-#define notify(summary, body)                       \
-    execl(NOTIFY_SEND_BINLOC, NOTIFY_SEND_BINLOC,   \
-          "-t", NOTIFY_SEND_TIMEOUT,                \
-          summary, body, NULL);
+static inline void
+notify(const char *summary, const char *body)
+{
+    int child;
+    int tmp;
+
+    /*
+     * Forking will create a child that will
+     * then be overwritten by execl() therefore
+     * allowing us to continue this main thread
+     * and cleanup
+     *
+     * XXX: It is probably a good idea to wait for the
+     *      child to die before we clean up, however,
+     *      there is a chance this may not be needed.
+     */
+    child = fork();
+    if (child == 0) {
+        execl(NOTIFY_SEND_BINLOC, NOTIFY_SEND_BINLOC,
+              "-t", NOTIFY_SEND_TIMEOUT, summary,
+              body, NULL);
+
+        __builtin_unreachable();
+    }
+    while (wait(&tmp) > 0);
+}
 
 /*
  * Does the same thing as strcat()
