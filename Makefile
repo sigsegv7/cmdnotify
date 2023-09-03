@@ -3,7 +3,7 @@ CFILES = cmdnotify.c
 CC = gcc
 BIN_LOC = bin/cmdnotify
 
-$(BIN_LOC):
+$(BIN_LOC): $(CFILES)
 	mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(CFILES) -o $@
 
