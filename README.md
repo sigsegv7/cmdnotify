@@ -5,4 +5,4 @@
 ``cmdnotify <command> <args ...>``
 
 ## Demo
-![Demo](relative%20screenshots/demo.png?raw=true "Demo")
+![Demo](https://github.com/sigsegv7/cmdnotify/blob/main/screenshots/demo.png?raw=true)
