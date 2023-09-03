@@ -43,7 +43,7 @@
 #define FAILURE_SUMMARY "Error"
 #define SUMMARY_MAXLEN 200      /* max chars */
 
-static inline void
+static void
 notify(const char *summary, const char *body)
 {
     int child;
