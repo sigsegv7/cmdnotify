@@ -41,7 +41,6 @@
 
 #define SUCCESS_SUMMARY "Success"
 #define FAILURE_SUMMARY "Error"
-#define SUMMARY_MAXLEN 200      /* max chars */
 
 static void
 notify(const char *summary, const char *body)
