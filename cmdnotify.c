@@ -90,13 +90,10 @@ notify(const char *summary, const char *body)
      * then be overwritten by execl() therefore
      * allowing us to continue this main thread
      * and cleanup
-     *
-     * XXX: It is probably a good idea to wait for the
-     *      child to die before we clean up, however,
-     *      there is a chance this may not be needed.
      */
     child = fork();
     if (child == 0) {
+        /* Child side */
         execl(NOTIFY_SEND_BINLOC, NOTIFY_SEND_BINLOC,
               "-t", NOTIFY_SEND_TIMEOUT, summary,
               body, NULL);
