@@ -106,28 +106,6 @@ notify(const char *summary, const char *body)
     while (wait(&tmp) > 0);
 }
 
-/*
- * Does the same thing as strcat()
- * but will an extra argument that specifies
- * the length of the src so it does not need
- * to be computed twice...
- *
- * XXX: Does *not* add '\0' to the end.
- *      It is up to the *caller* to do this.
- */
-static void
-append(char **dest_ptr, const char *src,
-       size_t src_len)
-{
-    char *dest = *dest_ptr;
-
-    for (size_t i = 0; i < src_len; ++i) {
-        dest[i] = src[i];
-    }
-
-    *dest_ptr += src_len;
-}
-
 static void
 notify_status(int status, const char *cmd)
 {
