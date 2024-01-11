@@ -42,6 +42,43 @@
 #define SUCCESS_SUMMARY "Success"
 #define FAILURE_SUMMARY "Error"
 
+/*
+ * Runs the program, returns its status
+ * code.
+ */
+static int
+run_prog(const char *progname, char *argv[])
+{
+    pid_t child;
+    char *progpath = NULL;
+    size_t pathlen = strlen(DEFAULT_BINDIR_PREFIX);
+    int status = 0;
+
+    /* Allocate our path */
+    pathlen += strlen(progname);
+    progpath = malloc(pathlen + 1);
+    assert(progpath != NULL);
+
+    /* Create the full path */
+    strcat(progpath, DEFAULT_BINDIR_PREFIX);
+    strcat(progpath, progname);
+
+    child = fork();
+    assert(child >= 0);
+
+    if (child == 0) {
+        /* Child side */
+        execv(progpath, argv);
+        __builtin_unreachable();
+    }
+
+    /* Parent side */
+    while (waitpid(child, &status, 0) > 0);
+    free(progpath);
+
+    return WEXITSTATUS(status);
+}
+
 static void
 notify(const char *summary, const char *body)
 {
@@ -123,12 +160,12 @@ notify_status(int status, const char *cmd)
 }
 
 int
-main(int argc, const char **argv)
+main(int argc, char **argv)
 {
     const char space_chr = ' ';
-    char *cmdbuf = NULL, *cmdbuf_ptr = NULL;
-    size_t cmdbuf_len;
-    int status;
+    char **argbuf = NULL;
+    size_t argbuf_entries = 1, newsize = 0;
+    int status = 0;
 
     if (argc < 2) {
         fprintf(stderr, "Error: Too few arguments!\n");
@@ -145,35 +182,37 @@ main(int argc, const char **argv)
         return 1;
     }
 
-    cmdbuf_len = 0;
+    argbuf = malloc(sizeof(char *));
+    argbuf[0] = argv[1];
 
-    /* Compute the size of the arg buffer */
-    for (size_t i = 1; i < argc; ++i) {
+    for (int i = 2; i < argc; ++i) {
+        ++argbuf_entries;
+        newsize = argbuf_entries * (sizeof(char *));
+        argbuf = realloc(argbuf, newsize);
         /*
-         * We want arguments to be seperated
-         * by a space e.g arg1 arg2 arg3
-         * thus adding 1 to the length
+         * argv[] example:
+         *
+         * {"cmdnotify",    "sleep",    "1"}
+         *   ^ Ignore       ^ Program    ^ Program argument
+         *
+         * The program arguments start at argv[i] and end at argv[n],
+         * where `i' equals 2, and `n' is the number of program arguments
+         * plus 2. Our argbuf index here is equal to i - 1. For example,
+         * if we are at the first command argument in argv (argv[2]) then we
+         * will be at the second argument in our argbuf, so argbuf[1].
+         * This is sort of hacky and it kinda sucks to be honest...
          */
-        cmdbuf_len += strlen(argv[i]) + 1;
+        argbuf[i - 1] = argv[i];
     }
 
-    cmdbuf = malloc(cmdbuf_len + 1);    /* Add 1 for '\0' */
-    assert(cmdbuf != NULL);
-
-    /* Append arguments to the command buffer */
-    cmdbuf_ptr = cmdbuf;
-    for (size_t i = 1; i < argc; ++i) {
-        append(&cmdbuf_ptr, argv[i], strlen(argv[i]));
-        append(&cmdbuf_ptr, &space_chr, 1);
-    }
-
-    /* Null terminate command buffer */
-    *cmdbuf_ptr = '\0';
+    /* Denote end of arglist */
+    argbuf = realloc(argbuf, sizeof(char *) + (argbuf_entries + 1));
+    argbuf[argbuf_entries] = NULL;
 
     /* Run the command and report the status! */
-    status = system(cmdbuf);
+    status = run_prog(argv[1], argbuf);
     notify_status(status, argv[1]);
-    free(cmdbuf);
+    free(argbuf);
 
     return status;
 }
