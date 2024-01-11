@@ -31,6 +31,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -95,6 +96,17 @@ create_progpath(const char *progname)
     strcat(progpath, DEFAULT_BINDIR_PREFIX);
     strcat(progpath, progname);
     return progpath;
+}
+
+static bool
+prog_exists(const char *progname)
+{
+    char *path = create_progpath(progname);
+    bool exists;
+
+    exists = access(path, F_OK) == 0;
+    free(path);
+    return exists;
 }
 
 static void
@@ -166,6 +178,17 @@ main(int argc, char **argv)
      */
     if (access("/bin/notify-send", F_OK) != 0) {
         fprintf(stderr, "Error: notify-send not found!\n");
+        return 1;
+    }
+
+    /*
+     * If the program that we wanna run
+     * does not exist, give an error.
+     */
+    if (!prog_exists(argv[1])) {
+        fprintf(stderr, "Failed to execute %s%s\n",
+               DEFAULT_BINDIR_PREFIX, argv[1]);
+        perror("access");
         return 1;
     }
 
