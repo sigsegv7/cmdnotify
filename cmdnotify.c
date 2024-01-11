@@ -139,6 +139,11 @@ main(int argc, char **argv)
         return 1;
     }
 
+    if (geteuid() == 0) {
+        fprintf(stderr, "Please do not run as root.\n");
+        return 1;
+    }
+
     /*
      * We depend on the notify-send
      * binary, give an error if it
