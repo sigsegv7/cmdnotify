@@ -119,7 +119,7 @@ prog_exists(const char *progname)
  * XXX: Used internally by notify_status()
  */
 static void
-notify_internal(const char *summary, const char *body)
+notify(const char *summary, const char *body)
 {
     int child;
     int tmp;
@@ -164,7 +164,7 @@ notify_status(int status, const char *cmd)
     body = malloc(MAX_BODY_BUFSIZE + strlen(cmd));
 
     snprintf(body, MAX_BODY_BUFSIZE, "'%s' returned %d", cmd, status);
-    notify_internal(summary, body);
+    notify(summary, body);
     free(body);
 }
 
