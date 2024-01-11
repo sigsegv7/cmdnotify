@@ -116,7 +116,7 @@ notify_status(int status, const char *cmd)
     }
 
     /* Length will be plus 3 to account for quote pair and '\0' */
-    body = malloc(MAX_BODY_BUFSIZE);
+    body = malloc(MAX_BODY_BUFSIZE + strlen(cmd));
 
     snprintf(body, MAX_BODY_BUFSIZE, "'%s' returned %d", cmd, status);
     notify(summary, body);
