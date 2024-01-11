@@ -98,6 +98,12 @@ create_progpath(const char *progname)
     return progpath;
 }
 
+/*
+ * Returns true if the program exists,
+ * otherwise, false.
+ *
+ * @progname: Name of program, e.g., "ls".
+ */
 static bool
 prog_exists(const char *progname)
 {
@@ -109,8 +115,11 @@ prog_exists(const char *progname)
     return exists;
 }
 
+/*
+ * XXX: Used internally by notify_status()
+ */
 static void
-notify(const char *summary, const char *body)
+notify_internal(const char *summary, const char *body)
 {
     int child;
     int tmp;
@@ -133,6 +142,12 @@ notify(const char *summary, const char *body)
     while (wait(&tmp) > 0);
 }
 
+/*
+ * Causes notification of program status.
+ *
+ * @status: Status code.
+ * @cmd: Command that was ran.
+ */
 static void
 notify_status(int status, const char *cmd)
 {
@@ -149,7 +164,7 @@ notify_status(int status, const char *cmd)
     body = malloc(MAX_BODY_BUFSIZE + strlen(cmd));
 
     snprintf(body, MAX_BODY_BUFSIZE, "'%s' returned %d", cmd, status);
-    notify(summary, body);
+    notify_internal(summary, body);
     free(body);
 }
 
