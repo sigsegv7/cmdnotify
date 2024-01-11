@@ -109,31 +109,20 @@ notify(const char *summary, const char *body)
 static void
 notify_status(int status, const char *cmd)
 {
-    const char *const body_end_success = "has finished and returned 0\n";
-    const char *const body_end_fail = "has returned non-zero value\n";
-    const char *body_end_ptr = NULL;
-    const char *summary_ptr = NULL;
-
-    size_t body_len, body_end_len;
-    char *body = NULL;
+    const size_t MAX_BODY_BUFSIZE = 256;
+    char *summary, *body;
 
     if (status == 0) {
-        body_end_ptr = body_end_success;
-        summary_ptr = SUCCESS_SUMMARY;
+        summary = SUCCESS_SUMMARY;
     } else {
-        body_end_ptr = body_end_fail;
-        summary_ptr = FAILURE_SUMMARY;
+        summary = FAILURE_SUMMARY;
     }
 
-    body_len = strlen(cmd) + 2;                     /* Add 2 for quote pair */
-    body_len += strlen(body_end_ptr) + 1;           /* Add 1 for '\0' */
+    /* Length will be plus 3 to account for quote pair and '\0' */
+    body = malloc(MAX_BODY_BUFSIZE);
 
-    body = calloc(body_len + body_end_len, sizeof(char));
-    assert(body != NULL);
-
-    snprintf(body, body_len, "'%s' %s\n", cmd, body_end_ptr);
-    notify(summary_ptr, body);
-
+    snprintf(body, MAX_BODY_BUFSIZE, "'%s' returned %d", cmd, status);
+    notify(summary, body);
     free(body);
 }
 
