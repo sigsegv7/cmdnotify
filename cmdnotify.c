@@ -35,10 +35,10 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "config.h"
 
 #define DEFAULT_BINDIR_PREFIX   "/bin/"
 #define NOTIFY_SEND_BINLOC  DEFAULT_BINDIR_PREFIX "notify-send"
-#define NOTIFY_SEND_TIMEOUT "3500"
 
 #define SUCCESS_SUMMARY "Success"
 #define FAILURE_SUMMARY "Error"
@@ -134,8 +134,9 @@ notify(const char *summary, const char *body)
     if (child == 0) {
         /* Child side */
         execl(NOTIFY_SEND_BINLOC, NOTIFY_SEND_BINLOC,
-              "-t", NOTIFY_SEND_TIMEOUT, summary,
-              body, NULL);
+              "-t", NOTIFY_SEND_TIMEOUT, "-u",
+              NOTIFY_SEND_URGENCY, summary, body,
+              NULL);
 
         __builtin_unreachable();
     }
