@@ -42,6 +42,8 @@
 #define SUCCESS_SUMMARY "Success"
 #define FAILURE_SUMMARY "Error"
 
+static char *create_progpath(const char *progname);
+
 /*
  * Runs the program, returns its status
  * code.
@@ -50,18 +52,8 @@ static int
 run_prog(const char *progname, char *argv[])
 {
     pid_t child;
-    char *progpath = NULL;
-    size_t pathlen = strlen(DEFAULT_BINDIR_PREFIX);
     int status = 0;
-
-    /* Allocate our path */
-    pathlen += strlen(progname);
-    progpath = malloc(pathlen + 1);
-    assert(progpath != NULL);
-
-    /* Create the full path */
-    strcat(progpath, DEFAULT_BINDIR_PREFIX);
-    strcat(progpath, progname);
+    char *progpath = create_progpath(progname);
 
     child = fork();
     assert(child >= 0);
@@ -77,6 +69,32 @@ run_prog(const char *progname, char *argv[])
     free(progpath);
 
     return WEXITSTATUS(status);
+}
+
+/*
+ * Creates full program path.
+ *
+ * For example, if `progname' is "ls", this
+ * function will return "/bin/ls"
+ *
+ * XXX: Make sure to call free() when done using the
+ *      value returned.
+ */
+static char *
+create_progpath(const char *progname)
+{
+    char *progpath = NULL;
+    size_t pathlen = strlen(DEFAULT_BINDIR_PREFIX);
+
+    /* Allocate our path */
+    pathlen += strlen(progname);
+    progpath = malloc(pathlen + 1);
+    assert(progpath != NULL);
+
+    /* Create the full path */
+    strcat(progpath, DEFAULT_BINDIR_PREFIX);
+    strcat(progpath, progname);
+    return progpath;
 }
 
 static void
